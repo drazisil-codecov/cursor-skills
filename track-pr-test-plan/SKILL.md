@@ -67,7 +67,7 @@ Check if the PR references a Linear issue:
 
 ```bash
 # Look for Linear issue references in PR body
-gh pr view <pr-number> --json body | grep -i "CODECOV-\|LINEAR-\|refs"
+gh pr view <pr-number> --json body | grep -i "PROJ-\|TEAM-\|LINEAR-\|refs"
 ```
 
 If a Linear issue is referenced, get its team:
@@ -75,7 +75,7 @@ If a Linear issue is referenced, get its team:
 ```javascript
 // Get the original issue details
 await user-linear-get_issue({
-  query: "<issue-identifier>" // e.g., "CODECOV-123"
+  query: "<issue-identifier>" // e.g., "PROJ-123" or "TEAM-456"
 })
 // Extract team from issue.team or issue.teamId
 ```
@@ -143,7 +143,7 @@ If validation fails:
 ```javascript
 // Example Linear issue creation
 await user-linear-create_issue({
-  title: "Validate Sentry worker tracing after PR #680 deployment",
+  title: "Validate feature after PR #680 deployment",
   description: "[See template above]",
   priority: 2, // Match original issue priority
   assignee: "<pr-author-linear-username>", // From Step 3
@@ -161,7 +161,7 @@ Add a comment to the PR linking to the tracking issue:
 
 Created tracking issue to ensure the test plan is followed after deployment:
 
-**[CODECOV-57: Validate feature after deployment](https://linear.app/...)**
+**[PROJ-123: Validate feature after deployment](https://linear.app/...)**
 
 This tracks:
 - ✅ Staging validation
@@ -216,36 +216,36 @@ Here's a full example showing PR author lookup, team extraction, and sprint assi
 # 1. Get PR details and check for Linear issue reference
 gh pr view 680 --json author,url,title,body
 
-# 2. Extract referenced Linear issue (e.g., "Relates to: CCMRG-2037")
+# 2. Extract referenced Linear issue (e.g., "Relates to: PROJ-2037")
 # Get original issue details
-user-linear-get_issue({ query: "CCMRG-2037" })
+user-linear-get_issue({ query: "PROJ-2037" })
 # Returns: { 
 #   id: "issue-123", 
-#   team: "Codecov Engineering", 
-#   teamId: "codecov-team-id",
+#   team: "Backend Team", 
+#   teamId: "backend-team-id",
 #   priority: { value: 2 }
 # }
 
 # 3. Find PR author in Linear
-user-linear-list_users({ query: "drazisil-codecov" })
-# Returns: { id: "abc123", name: "Joe Becher", email: "joe@..." }
+user-linear-list_users({ query: "github-username" })
+# Returns: { id: "abc123", name: "Jane Smith", email: "jane@..." }
 
 # 4. Get current cycle for the same team as original issue
-user-linear-list_cycles({ teamId: "codecov-team-id", type: "current" })
+user-linear-list_cycles({ teamId: "backend-team-id", type: "current" })
 # Returns: { id: "cycle-xyz", name: "Sprint 24", ... }
 
 # 5. Create tracking issue with same team
 user-linear-create_issue({
-  title: "Validate Sentry worker tracing after PR #680 deployment",
-  description: "## Background\n\nPR #680 removes Sentry re-initialization...",
+  title: "Validate feature after PR #680 deployment",
+  description: "## Background\n\nPR #680 adds new authentication flow...",
   priority: 2, // Match original issue priority
   assignee: "abc123", // PR author's Linear ID
-  team: "Codecov Engineering", // Same team as original issue
+  team: "Backend Team", // Same team as original issue
   cycle: "cycle-xyz" // Current sprint for that team
 })
 
 # 6. Link back to PR
-gh pr comment 680 --body "📋 Created tracking issue: [CODECOV-57](https://linear.app/...)"
+gh pr comment 680 --body "📋 Created tracking issue: [PROJ-123](https://linear.app/...)"
 ```
 
 ## Examples
@@ -400,6 +400,6 @@ A: Yes. Validation is part of delivering the feature. If sprint capacity is an i
 **Q: What if the PR doesn't reference a Linear issue?**
 A: Determine the team by:
 1. Looking at which code area/directory is being changed
-2. Checking component ownership (e.g., worker changes → Codecov team)
+2. Checking component ownership (e.g., API changes → Backend team, UI changes → Frontend team)
 3. Asking the user which team should track the validation
 As a last resort, assign to the same team as the PR author.
